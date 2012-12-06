@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project basedir="." default="jar" name="smokeping">
+<project basedir="." default="all" name="smokeping" xmlns:cpptasks="antlib:net.sf.antcontrib.cpptasks">
     <!-- set global properties for this build -->
     <property name="app.name" value="smokeping"/>
     <property name="app.path" value="/${app.name}"/>
@@ -45,7 +45,17 @@
         </jar>
     </target>
     
-    <target name="doc">
+    <target name="smallping" depends="compile">
+        <cpptasks:cc name="gcc" outtype="executable" outfile="${build.home}/smallping" objdir="${build.home}" >
+            <fileset dir="src" includes="**/*.c" />
+        	<cpptasks:compilerarg value="-O2"/>
+        	<cpptasks:compilerarg value="-Wall"/>
+        </cpptasks:cc>
+    </target>
+	
+	<target depends="smallping,jar" name="all" />
+
+	<target name="doc">
         <javadoc access="protected" author="true" destdir="${docs.build}"
             nodeprecated="false" nodeprecatedlist="false" noindex="false"
             nonavbar="false" notree="false"
