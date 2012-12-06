@@ -57,7 +57,7 @@ int received(int icmp_sock, int echo_id, double* delays) {
     char pkt_buf[MAX_PACKET];
     struct icmp * icmp_buf = (struct icmp *) pkt_buf;
     double delay;
-
+    
     bzero(&pkt_buf, MAX_PACKET);
     int read = recvfrom(icmp_sock, pkt_buf, MAX_PACKET, 0, NULL, NULL);
     if(read == -1)
@@ -91,7 +91,7 @@ main(int argc, char *argv[])
     }
     char pkt_buf[MAX_PACKET];
     struct icmp * icmp_buf = (struct icmp *) pkt_buf;
-
+    
     double delays[NUM_PING];
     
     int icmp_sock;
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
     
     // just in case, filter the ip. This code is setuid
     char ip_buff[16];
-    strncpy(ip_buff, argv[1], 15):
+    strncpy(ip_buff, argv[1], 15);
     ip_buff[15] = '\0';
     if(inet_aton(argv[1], &addr) == 0) {
         printf("N:U:U:U:U:U:U:U:U:U:U:U:U:U:U:U:U:U:U:U:U\n");
@@ -122,9 +122,9 @@ main(int argc, char *argv[])
     int echo_id = getpid();
     
     int ping_out = 0;
-
+    
     struct timeval timeout;
-
+    
     int result;
     int nseq;
     
@@ -132,7 +132,7 @@ main(int argc, char *argv[])
     icmp_buf->icmp_type=ICMP_ECHO;
     icmp_buf->icmp_code=0;
     icmp_buf->icmp_id=echo_id;
-
+    
     for(nseq = 0; nseq < NUM_PING; nseq++) {
         delays[nseq] = -1;
         icmp_buf->icmp_seq=nseq;
@@ -140,7 +140,7 @@ main(int argc, char *argv[])
         //cksum must be null for checksum calculation
         icmp_buf->icmp_cksum=0;
         icmp_buf->icmp_cksum=cksum((unsigned short *) icmp_buf, ICMP_SIZE + sizeof(struct timeval));
-
+        
         sendto(icmp_sock, icmp_buf, ICMP_SIZE  + sizeof(struct timeval), 0, (struct sockaddr *) &icmp_sock_info, lsock);
         ping_out++;
         
@@ -190,6 +190,7 @@ main(int argc, char *argv[])
         //Nothing left to wait, hang over
         if(timeout.tv_sec <= 0 && timeout.tv_usec <= 0) {
             break;
+        }
     }
     printf("N");
     for(nseq = 0; nseq < NUM_PING; nseq++) {
