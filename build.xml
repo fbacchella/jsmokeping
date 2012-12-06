@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="jar" name="smokeping">
+    <!-- set global properties for this build -->
+    <property name="app.name" value="smokeping"/>
+    <property name="app.path" value="/${app.name}"/>
+    <property name="app.version" value="0.1"/>
+    <property name="build.home" value="${basedir}/build"/>
+    <property name="docs.build" value="${build.home}/docs"/>
+    <property name="src.home" value="${basedir}/src"/>
+    <!--  ==================== Compilation Control Options ==================== -->
+    <property name="compile.debug" value="true"/>
+    <property name="compile.deprecation" value="true"/>
+    <property name="compile.optimize" value="true"/>
+    <property file="build.properties"/>
+
+    <!-- ===================== External jar Classpath =========================== -->
+    <path id="external.classpath">
+        <fileset dir="${jrds.home}">
+            <include name="lib/*.jar"/>
+            <include name="build/*.jar"/>
+        </fileset>
+        <fileset dir="${basedir}">
+            <include name="lib/*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="compile">
+        <mkdir dir="${build.home}/classes"/>
+        <javac debug="${compile.debug}" deprecation="${compile.deprecation}"
+            destdir="${build.home}/classes" encoding="UTF-8"
+            optimize="${compile.optimize}" source="1.6" srcdir="${src.home}"
+            target="1.6">
+            <classpath refid="external.classpath"/>
+        </javac>
+    </target>
+    
+    <target depends="compile" name="jar">
+    	<jar destfile="${build.home}/${app.name}.jar">
+      		<fileset dir=".">
+        		<include name="desc/**/*.xml"/>
+      		</fileset>
+      		<fileset dir="${build.home}/classes">
+        		<include name="**/*.class"/>
+      		</fileset>
+        </jar>
+    </target>
+    
+    <target name="doc">
+        <javadoc access="protected" author="true" destdir="${docs.build}"
+            nodeprecated="false" nodeprecatedlist="false" noindex="false"
+            nonavbar="false" notree="false"
+            packagenames="jrds.probe,jrds.agent"
+            sourcepath="src" splitindex="true" use="true" version="true">
+            <classpath refid="external.classpath"/>
+            <link href="http://java.sun.com/j2se/1.4.2/docs/api"/>
+        </javadoc>
+    </target>
+    
+    <target description="clean up" name="clean">
+        <delete dir="${build.home}"/>
+    </target>
+
+	<target name="checkdtd">
+    	<xmlvalidate>
+      		<xmlcatalog>
+        		<dtd publicId="-//jrds//DTD Graph Description//EN" location="${jrds.home}/dtd/graphdesc.dtd"/>
+        		<dtd publicId="-//jrds//DTD Probe Description//EN" location="${jrds.home}/dtd/probedesc.dtd"/>
+      		</xmlcatalog>
+      		<fileset dir="desc" includes="**/*.xml"/>
+    	</xmlvalidate>
+  	</target>
+
+</project>
