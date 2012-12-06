@@ -59,8 +59,9 @@ public class Graph extends jrds.Graph {
                 indice = 19;
             graphDef.datasource("me" + indice, String.format("loss,%d,GT,loss,%d,LE,*,1,UNKN,IF,median,*", previous, indice));
             //$swidth = $max->{$s}{$start} / $cfg->{Presentation}{detail}{height};
-            graphDef.datasource("meL" + indice, String.format("me%d,7.238592e-05,-", indice));
-            graphDef.datasource("meH" + indice, String.format("me%d,0,*,7.238592e-05,2,*,+", indice));
+            double thickness = max / getNode().getGraphDesc().getHeight();
+            graphDef.datasource("meL" + indice, String.format("me%d,%f,-", indice, thickness));
+            graphDef.datasource("meH" + indice, String.format("me%d,0,*,%f,2,*,+", indice, thickness));
             graphDef.area("meL" + indice, TRANSLUCENT);
             graphDef.stack("meH" + indice, toLoss(i), "" + indice + "/20");
             previous = indice;
