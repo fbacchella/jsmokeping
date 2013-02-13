@@ -22,7 +22,7 @@ public class Smokeping extends ExternalCmdIndexed {
             InetAddress addr = InetAddress.getByName(getIndexName());
             cmd = cmd +  " " + addr.getHostAddress();
         } catch (UnknownHostException e) {
-            log(Level.ERROR, "host name %s unknown");
+            log(Level.ERROR, "host name %s unknown", getIndexName());
             return false;
         }
         return true;

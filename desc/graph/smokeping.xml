@@ -80,7 +80,7 @@
     <add>
         <rpn>loss,20,/,100,*</rpn>
         <graphType>LEGEND</graphType>
-        <legend>Packet loss</legend>
+        <legend>Packet loss (%)</legend>
     </add>
     <viewtree>
         <pathelement>SERVICES</pathelement>
