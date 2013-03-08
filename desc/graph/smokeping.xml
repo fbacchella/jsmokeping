@@ -74,6 +74,9 @@
     </add>
     <add>
         <name>median</name>
+    </add>
+    <add>
+        <name>median</name>
         <graphType>LEGEND</graphType>
         <legend>Median rtt</legend>
     </add>
