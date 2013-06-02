@@ -9,35 +9,39 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jrds.factories.ProbeBean;
+import jrds.probe.ExternalCmdProbe;
+import jrds.probe.IndexedProbe;
+
 import org.apache.log4j.Level;
-import org.rrd4j.core.Sample;
 
-import jrds.probe.ExternalCmdIndexed;
-
-public class Smokeping extends ExternalCmdIndexed {
+@ProbeBean({"node"})
+public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
+    private String node = null;
 
     @Override
     public Boolean configure() {
         try {
-            InetAddress addr = InetAddress.getByName(getIndexName());
+            InetAddress addr = InetAddress.getByName(getNode());
             cmd = cmd +  " " + addr.getHostAddress();
         } catch (UnknownHostException e) {
-            log(Level.ERROR, "host name %s unknown", getIndexName());
+            log(Level.ERROR, "host name %s unknown", getNode());
             return false;
         }
         return true;
     }
-
-
 
     /* (non-Javadoc)
      * @see jrds.probe.ExternalCmdProbe#getNewSampleValues()
      */
     @Override
     public Map<String, Number> getNewSampleValues() {
-        String[] valuesStr = launchCmd().split(":");
-        if(valuesStr.length != 21)
+        String smallping = launchCmd();
+        String[] valuesStr = smallping.split(":");
+        if(valuesStr.length != 21) {
+            log(Level.ERROR, "smallping run failed: %s", smallping);
             return Collections.emptyMap();
+        }
         List<Double> values= new ArrayList<Double>(20);
         int loss = 20;
         for(int i=1; i <= 20; i++) {
@@ -64,15 +68,7 @@ public class Smokeping extends ExternalCmdIndexed {
         return valuesMap;
     }
 
-
-    /* (non-Javadoc)
-     * @see jrds.probe.ExternalCmdProbe#modifySample(org.rrd4j.core.Sample, java.util.Map)
-     */
-    @Override
-    public void modifySample(Sample oneSample, Map<String, Number> values) {
-    }
-
-    // the list m MUST BE SORTED
+    // the list m must be already sorted
     private final Double median(List<Double> m) {
         if(m.size() < 1)
             return Double.NaN;
@@ -83,4 +79,28 @@ public class Smokeping extends ExternalCmdIndexed {
             return (m.get(middle-1) + m.get(middle)) / 2.0;
         }
     }
+    
+    /**
+     * @return the host
+     */
+    public String getNode() {
+        if(node == null) {
+            return this.getHost().getDnsName();
+        }
+        else
+            return node;
+    }
+
+    /**
+     * @param host the host to set
+     */
+    public void setNode(String node) {
+        this.node = node;
+    }
+
+    @Override
+    public String getIndexName() {
+        return getNode();
+    }
+
 }

@@ -27,9 +27,8 @@ public class Graph extends jrds.Graph {
         getStdDev();
         double max = (maxmedian + stddev) * 1.2;
         graphDef.setRigid(true);
-        graphDef.setMaxValue(max); // $max->{$start},
-        graphDef.setMinValue(0);           // ($cfg->{Presentation}{detail}{logarithmic} ? ($max->{$start} > 0.01) ? '0.001' : '0.0001' : '0'),
-        // '--vertical-label',$ProbeUnit,
+        graphDef.setMaxValue(max);
+        graphDef.setMinValue(0);
 
         for(int i = 1; i <= 20; i++) {
             String ping = "ping" + i;
@@ -46,7 +45,7 @@ public class Graph extends jrds.Graph {
 
         graphDef.datasource("mesd", String.format("avmed,%15e,/", stddev));
 
-        graphDef.line("median", toColor("202020"));
+        graphDef.line("median", MEDIAN);
         graphDef.gprint("mesd", ConsolFun.AVERAGE, "%.1lf %s am/s\\l");
 
         graphDef.comment("loss color");
@@ -58,7 +57,6 @@ public class Graph extends jrds.Graph {
             else if(i == 6)
                 indice = 19;
             graphDef.datasource("me" + indice, String.format("loss,%d,GT,loss,%d,LE,*,1,UNKN,IF,median,*", previous, indice));
-            //$swidth = $max->{$s}{$start} / $cfg->{Presentation}{detail}{height};
             double thickness = max / getNode().getGraphDesc().getHeight();
             graphDef.datasource("meL" + indice, String.format("me%d,%f,-", indice, thickness));
             graphDef.datasource("meH" + indice, String.format("me%d,0,*,%f,2,*,+", indice, thickness));
@@ -67,27 +65,21 @@ public class Graph extends jrds.Graph {
             previous = indice;
         }
         graphDef.comment("\\l");
-        //HRULE:0#000000
     }
+    
     static private final Color TRANSLUCENT = new Color(255, 255, 255, 0);
-    static private final String[] GRAYS = new String[] {"dddddd", "cacaca", "b7b7b7", "a4a4a4", "919191", "7e7e7e", "6b6b6b", "585858", "454545", "323232"};
-    static private final String[] LOSS = new String[] {"26ff00", "00b8ff", "0059ff", "5e00ff", "7e00ff", "dd00ff", "ff0000"};
-    //221, 202, 183, 164, 145, 126, 107, 88, 69, 50
+    static private final Color MEDIAN = new Color(0x202020);
+    static private final int[] GRAYS = new int[] {0xdddddd, 0xcacaca, 0xb7b7b7, 0xa4a4a4, 0x919191, 0x7e7e7e, 0x6b6b6b, 0x585858, 0x454545, 0x323232};
+    static private final int[] LOSS = new int[] {0x26ff00, 0x00b8ff, 0x0059ff, 0x5e00ff, 0x7e00ff, 0xdd00ff, 0xff0000};
 
     private final Color toGray(int index) {
-        String hexa = GRAYS[index];
-        Color c = new Color(Integer.parseInt(hexa, 16));
+        Color c = new Color(GRAYS[index]);
         return c;
     };
 
     private final Color toLoss(int index) {
-        String hexa = LOSS[index];
-        Color c = new Color(Integer.parseInt(hexa, 16));
+        Color c = new Color(LOSS[index]);
         return c;
-    };
-
-    private final Color toColor(String color) {
-        return new Color(Integer.parseInt(color, 16));
     };
 
     private void getStdDev() {
@@ -110,6 +102,5 @@ public class Graph extends jrds.Graph {
         double sqdev =  ( sqsum - (sum*sum) / cnt ) / cnt ;
         stddev = sqdev < 0 ? 0 : Math.sqrt(sqdev);
     }
-
 
 }
