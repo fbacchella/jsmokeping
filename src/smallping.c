@@ -4,6 +4,7 @@
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <unistd.h>
@@ -63,7 +64,7 @@ int received(int icmp_sock, int echo_id, double* delays) {
     if(read == -1)
         return 0;
     icmp_buf = pkt_buf + IP_SIZE;
-    
+
     //Check if it's one of our ping reply
     if(icmp_buf->icmp_type == ICMP_ECHOREPLY && icmp_buf->icmp_id == echo_id && icmp_buf->icmp_seq < NUM_PING) {
         struct timeval tvrec;
@@ -119,7 +120,7 @@ main(int argc, char *argv[])
     }
     icmp_sock_info.sin_addr.s_addr=addr.s_addr;
     
-    int echo_id = getpid();
+    uint16_t echo_id = getpid() & 0xFFFF;
     
     int ping_out = 0;
     
