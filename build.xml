@@ -28,8 +28,8 @@
         <mkdir dir="${build.home}/classes"/>
         <javac debug="${compile.debug}" deprecation="${compile.deprecation}"
             destdir="${build.home}/classes" encoding="UTF-8"
-            optimize="${compile.optimize}" source="1.6" srcdir="${src.home}"
-            target="1.6">
+            optimize="${compile.optimize}" source="1.7" srcdir="${src.home}"
+            target="1.7">
             <classpath refid="external.classpath"/>
         </javac>
     </target>
