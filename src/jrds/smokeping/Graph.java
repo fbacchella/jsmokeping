@@ -7,8 +7,10 @@ import java.util.Map;
 import jrds.GraphNode;
 import jrds.Probe;
 import jrds.store.ExtractInfo;
+import jrds.store.Extractor;
 
 import org.rrd4j.ConsolFun;
+import org.rrd4j.data.DataProcessor;
 import org.rrd4j.data.Plottable;
 import org.rrd4j.graph.RrdGraphDef;
 
@@ -25,7 +27,7 @@ public class Graph extends jrds.Graph {
     protected void setGraphDefData(RrdGraphDef graphDef, Probe<?, ?> defProbe, ExtractInfo ei,
             Map<String, ? extends Plottable> customData) {
         super.setGraphDefData(graphDef, defProbe, ei, customData);
-        getStdDev(ei);
+        getStdDev(defProbe, ei);
         double max = (maxmedian + stddev) * 1.2;
         graphDef.setRigid(true);
         graphDef.setMaxValue(max);
@@ -83,13 +85,16 @@ public class Graph extends jrds.Graph {
         return c;
     };
 
-    private void getStdDev(ExtractInfo ei) {
-        double[] median_val;
+    private void getStdDev(Probe<?,?> p, ExtractInfo ei) {
+        Extractor ex = p.fetchData();
+        ex.addSource("median", "median");
+        DataProcessor dp = ei.getDataProcessor(ex);
         try {
-            median_val = getDataProcessor().getValues("median");
+            dp.processData();
         } catch (IOException e) {
-            throw new RuntimeException("failed to process graph", e);
+            throw new RuntimeException("Failed to access rrd file  " + p.getMainStore().getPath(), e);
         }
+        double[] median_val = dp.getValues("median");
         double sum = 0;
         double sqsum = 0;
         maxmedian = 0;
