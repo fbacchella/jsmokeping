@@ -1,18 +1,19 @@
 package jrds.smokeping;
 
 import java.awt.Color;
+import java.io.IOException;
 import java.util.Map;
 
 import jrds.GraphNode;
 import jrds.Probe;
+import jrds.store.ExtractInfo;
 
 import org.rrd4j.ConsolFun;
-import org.rrd4j.core.FetchData;
 import org.rrd4j.data.Plottable;
 import org.rrd4j.graph.RrdGraphDef;
 
 public class Graph extends jrds.Graph {
-    
+
     double stddev = Double.NaN;
     double maxmedian = Double.NaN;
 
@@ -21,10 +22,10 @@ public class Graph extends jrds.Graph {
     }
 
     @Override
-    protected void setGraphDefData(RrdGraphDef graphDef, Probe<?, ?> defProbe,
+    protected void setGraphDefData(RrdGraphDef graphDef, Probe<?, ?> defProbe, ExtractInfo ei,
             Map<String, ? extends Plottable> customData) {
-        super.setGraphDefData(graphDef, defProbe, customData);
-        getStdDev();
+        super.setGraphDefData(graphDef, defProbe, ei, customData);
+        getStdDev(ei);
         double max = (maxmedian + stddev) * 1.2;
         graphDef.setRigid(true);
         graphDef.setMaxValue(max);
@@ -66,7 +67,7 @@ public class Graph extends jrds.Graph {
         }
         graphDef.comment("\\l");
     }
-    
+
     static private final Color TRANSLUCENT = new Color(255, 255, 255, 0);
     static private final Color MEDIAN = new Color(0x202020);
     static private final int[] GRAYS = new int[] {0xdddddd, 0xcacaca, 0xb7b7b7, 0xa4a4a4, 0x919191, 0x7e7e7e, 0x6b6b6b, 0x585858, 0x454545, 0x323232};
@@ -82,9 +83,13 @@ public class Graph extends jrds.Graph {
         return c;
     };
 
-    private void getStdDev() {
-        FetchData fd = getNode().getProbe().fetchData(getStartSec(), getEndSec());
-        double[] median_val = fd.getValues("median");
+    private void getStdDev(ExtractInfo ei) {
+        double[] median_val;
+        try {
+            median_val = getDataProcessor().getValues("median");
+        } catch (IOException e) {
+            throw new RuntimeException("failed to process graph", e);
+        }
         double sum = 0;
         double sqsum = 0;
         maxmedian = 0;
