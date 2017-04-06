@@ -23,7 +23,11 @@ To make smallping usable, don't forget to set it setuid root :
 
     sudo chown root:root smallping
     sudo chmod 4755 smallping
-    
+
+or
+
+    sudo setcap cap_net_raw+pe smallping
+
 To use the probe, put it in any node definition and add :
 
     <probe type="Smokeping">
