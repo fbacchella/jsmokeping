@@ -14,24 +14,28 @@ import org.slf4j.event.Level;
 import jrds.factories.ProbeBean;
 import jrds.probe.ExternalCmdProbe;
 import jrds.probe.IndexedProbe;
+import lombok.Getter;
 import lombok.Setter;
 
 @ProbeBean({"node"})
 public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
-    
-    @Setter
+
+    @Getter @Setter
     private String node = null;
 
     @Override
     public Boolean configure() {
+        if (node == null) {
+            node = getHost().getDnsName();
+        }
         try {
-            InetAddress addr = InetAddress.getByName(getNode());
+            InetAddress addr = InetAddress.getByName(node);
             cmd = cmd +  " " + addr.getHostAddress();
+            return true;
         } catch (UnknownHostException e) {
-            log(Level.ERROR, "host name %s unknown", getNode());
+            log(Level.ERROR, "host name %s unknown", node);
             return false;
         }
-        return true;
     }
 
     /* (non-Javadoc)
@@ -81,17 +85,6 @@ public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
         } else {
             return (m.get(middle-1) + m.get(middle)) / 2.0;
         }
-    }
-    
-    /**
-     * @return the host
-     */
-    public String getNode() {
-        if(node == null) {
-            return this.getHost().getDnsName();
-        }
-        else
-            return node;
     }
 
     @Override
