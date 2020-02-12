@@ -14,9 +14,12 @@ import org.slf4j.event.Level;
 import jrds.factories.ProbeBean;
 import jrds.probe.ExternalCmdProbe;
 import jrds.probe.IndexedProbe;
+import lombok.Setter;
 
 @ProbeBean({"node"})
 public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
+    
+    @Setter
     private String node = null;
 
     @Override
@@ -89,13 +92,6 @@ public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
         }
         else
             return node;
-    }
-
-    /**
-     * @param host the host to set
-     */
-    public void setNode(String node) {
-        this.node = node;
     }
 
     @Override
