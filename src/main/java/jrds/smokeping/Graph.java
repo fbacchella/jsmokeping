@@ -4,15 +4,15 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.Map;
 
+import org.rrd4j.data.DataProcessor;
+import org.rrd4j.data.Plottable;
+import org.rrd4j.data.Variable;
+import org.rrd4j.graph.RrdGraphDef;
+
 import jrds.GraphNode;
 import jrds.Probe;
 import jrds.store.ExtractInfo;
 import jrds.store.Extractor;
-
-import org.rrd4j.ConsolFun;
-import org.rrd4j.data.DataProcessor;
-import org.rrd4j.data.Plottable;
-import org.rrd4j.graph.RrdGraphDef;
 
 public class Graph extends jrds.Graph {
 
@@ -40,16 +40,16 @@ public class Graph extends jrds.Graph {
         }
         for(int i = 1 ; i <= 10; i++){
             String rpn = String.format("cp%d,UN,UNKN,cp%d,cp%d,-,IF", i, 21 - i, i);
-            graphDef.datasource("smoke" + i, rpn);            
+            graphDef.datasource("smoke" + i, rpn);
             graphDef.area("cp" + i, TRANSLUCENT);
             graphDef.stack("smoke" + i, toGray(i - 1));
         }
-        graphDef.datasource("avmed", "median", ConsolFun.AVERAGE);
+        graphDef.datasource("avmed", "median", new Variable.AVERAGE());
 
         graphDef.datasource("mesd", String.format("avmed,%15e,/", stddev));
 
         graphDef.line("median", MEDIAN);
-        graphDef.gprint("mesd", ConsolFun.AVERAGE, "%.1lf %s am/s\\l");
+        graphDef.gprint("mesd", "%.1lf %s am/s\\l");
 
         graphDef.comment("loss color");
         int previous = -1;
