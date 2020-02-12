@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.event.Level;
+
 import jrds.factories.ProbeBean;
 import jrds.probe.ExternalCmdProbe;
 import jrds.probe.IndexedProbe;
-
-import org.apache.log4j.Level;
 
 @ProbeBean({"node"})
 public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
