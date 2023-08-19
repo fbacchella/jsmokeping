@@ -49,8 +49,6 @@ jobs:
                       mv -n /tmp/ws/home/circleci/.m2 /home/circleci/
                       mv -n /tmp/ws/home/circleci/project/* /home/circleci/project/
                       mv -n /tmp/ws/home/circleci/project/.??* /home/circleci/project/
-                      sudo mkdir -p /usr/share/snmp/mibs/
-                      sudo mv -n /tmp/ws/usr/share/snmp/mibs/* /usr/share/snmp/mibs/
             - run:
                   command: |
                       # If no symbolic name, it's a PR, will run sonar
@@ -83,8 +81,6 @@ jobs:
                       mv -n /tmp/ws/home/circleci/.sonar /home/circleci/
                       mv -n /tmp/ws/home/circleci/project/* /home/circleci/project/
                       mv -n /tmp/ws/home/circleci/project/.??* /home/circleci/project/
-                      sudo mkdir -p /usr/share/snmp/mibs/
-                      sudo mv -n /tmp/ws/usr/share/snmp/mibs/* /usr/share/snmp/mibs/
             - run:
                   command: |
                       mkdir -p /tmp/$CIRCLE_JOB
@@ -106,8 +102,6 @@ jobs:
                       mv -n /tmp/ws/home/circleci/.sonar /home/circleci/
                       mv -n /tmp/ws/home/circleci/project/* /home/circleci/project/
                       mv -n /tmp/ws/home/circleci/project/.??* /home/circleci/project/
-                      sudo mkdir -p /usr/share/snmp/mibs/
-                      sudo mv -n /tmp/ws/usr/share/snmp/mibs/* /usr/share/snmp/mibs/
             - run:
                   command: |
                       mkdir -p /tmp/$CIRCLE_JOB
@@ -176,6 +170,7 @@ workflows:
       - testsj20:
           requires:
             - build
+          context: "Security variables"
       - testsj17:
           requires:
             - build
