@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,11 +58,7 @@ public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
                 loss--;
             }
         }
-        Collections.sort(values, new Comparator<Double>() {
-            public int compare(Double arg0, Double arg1) {
-                return Double.compare(arg0, arg1);
-            }
-        });
+        values.sort(Double::compare);
         Map<String, Number> valuesMap = new HashMap<>(values.size());
         int start =  1 + (int) Math.floor( (float) loss / 2);
         int end = 20 - (int) Math.ceil( (float) loss / 2);
