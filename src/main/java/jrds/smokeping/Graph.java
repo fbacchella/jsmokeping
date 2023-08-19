@@ -64,7 +64,7 @@ public class Graph extends jrds.Graph {
             graphDef.datasource("meL" + indice, String.format("me%d,%f,-", indice, thickness));
             graphDef.datasource("meH" + indice, String.format("me%d,0,*,%f,2,*,+", indice, thickness));
             graphDef.area("meL" + indice, TRANSLUCENT);
-            graphDef.stack("meH" + indice, toLoss(i), "" + indice + "/20");
+            graphDef.stack("meH" + indice, toLoss(i), indice + "/20");
             previous = indice;
         }
         graphDef.comment("\\l");
