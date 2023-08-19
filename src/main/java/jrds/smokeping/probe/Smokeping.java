@@ -49,7 +49,7 @@ public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
             log(Level.ERROR, "smallping run failed: %s", smallping);
             return Collections.emptyMap();
         }
-        List<Double> values= new ArrayList<Double>(20);
+        List<Double> values= new ArrayList<>(20);
         int loss = 20;
         for(int i=1; i <= 20; i++) {
             String valparse = valuesStr[i];
@@ -64,7 +64,7 @@ public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
                 return Double.compare(arg0, arg1);
             }
         });
-        Map<String, Number> valuesMap = new HashMap<String, Number>(values.size());
+        Map<String, Number> valuesMap = new HashMap<>(values.size());
         int start =  1 + (int) Math.floor( (float) loss / 2);
         int end = 20 - (int) Math.ceil( (float) loss / 2);
         for(int i = start ; i <= end; i++ ) {
