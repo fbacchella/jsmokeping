@@ -70,10 +70,10 @@ public class Graph extends jrds.Graph {
         graphDef.comment("\\l");
     }
 
-    static private final Color TRANSLUCENT = new Color(255, 255, 255, 0);
-    static private final Color MEDIAN = new Color(0x202020);
-    static private final int[] GRAYS = new int[] {0xdddddd, 0xcacaca, 0xb7b7b7, 0xa4a4a4, 0x919191, 0x7e7e7e, 0x6b6b6b, 0x585858, 0x454545, 0x323232};
-    static private final int[] LOSS = new int[] {0x26ff00, 0x00b8ff, 0x0059ff, 0x5e00ff, 0x7e00ff, 0xdd00ff, 0xff0000};
+    private static final Color TRANSLUCENT = new Color(255, 255, 255, 0);
+    private static final Color MEDIAN = new Color(0x202020);
+    private static final int[] GRAYS = new int[] {0xdddddd, 0xcacaca, 0xb7b7b7, 0xa4a4a4, 0x919191, 0x7e7e7e, 0x6b6b6b, 0x585858, 0x454545, 0x323232};
+    private static final int[] LOSS = new int[] {0x26ff00, 0x00b8ff, 0x0059ff, 0x5e00ff, 0x7e00ff, 0xdd00ff, 0xff0000};
 
     private Color toGray(int index) {
         return new Color(GRAYS[index]);
