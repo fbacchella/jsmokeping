@@ -76,7 +76,7 @@ public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
     }
 
     // the list m must be already sorted
-    private final Double median(List<Double> m) {
+    private Double median(List<Double> m) {
         if(m.size() < 1)
             return Double.NaN;
         int middle = m.size()/2;
