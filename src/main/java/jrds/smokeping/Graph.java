@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.rrd4j.data.DataProcessor;
-import org.rrd4j.data.Plottable;
+import org.rrd4j.data.IPlottable;
 import org.rrd4j.data.Variable;
 import org.rrd4j.graph.RrdGraphDef;
 
@@ -25,7 +25,7 @@ public class Graph extends jrds.Graph {
 
     @Override
     protected void setGraphDefData(RrdGraphDef graphDef, Probe<?, ?> defProbe, ExtractInfo ei,
-            Map<String, ? extends Plottable> customData) {
+                                   Map<String, IPlottable> customData) {
         super.setGraphDefData(graphDef, defProbe, ei, customData);
         getStdDev(defProbe, ei);
         double max = (maxmedian + stddev) * 1.2;
