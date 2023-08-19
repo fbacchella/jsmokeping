@@ -9,15 +9,6 @@
 
     <name>smokeping</name>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <jdk.compile.home>${jdk.8.home}</jdk.compile.home>
-        <bootclasspath>${jdk.compile.home}/jre/lib/rt.jar</bootclasspath>
-        <sonar.version>3.7.0.1746</sonar.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>fr.jrds</groupId>
@@ -33,7 +24,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.10</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -45,13 +36,13 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
-            <version>2.13.0</version>
+            <version>${log4j2.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-jul</artifactId>
-            <version>2.13.0</version>
+            <version>${log4j2.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -98,7 +89,6 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.4</version>
                         <configuration>
                             <output>file</output>
                             <append>true</append>
@@ -122,7 +112,6 @@
                     <plugin>
                         <groupId>org.sonarsource.scanner.maven</groupId>
                         <artifactId>sonar-maven-plugin</artifactId>
-                        <version>${sonar.version}</version>
                         <executions>
                             <execution>
                                 <phase>verify</phase>
@@ -161,7 +150,7 @@
     <parent>
         <groupId>fr.jrds</groupId>
         <artifactId>jrds</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>2023.1-SNAPSHOT</version>
     </parent>
 
     <distributionManagement>
