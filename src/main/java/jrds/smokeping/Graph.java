@@ -78,12 +78,12 @@ public class Graph extends jrds.Graph {
     private Color toGray(int index) {
         Color c = new Color(GRAYS[index]);
         return c;
-    };
+    }
 
     private Color toLoss(int index) {
         Color c = new Color(LOSS[index]);
         return c;
-    };
+    }
 
     private void getStdDev(Probe<?,?> p, ExtractInfo ei) {
         Extractor ex = p.fetchData();
