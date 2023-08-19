@@ -90,7 +90,7 @@ public class Graph extends jrds.Graph {
         try {
             dp.processData();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to access rrd file  " + p.getMainStore().getPath(), e);
+            throw new IllegalStateException("Failed to access rrd file  " + p.getMainStore().getPath(), e);
         }
         double[] median_val = dp.getValues("median");
         double sum = 0;
