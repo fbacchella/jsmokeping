@@ -76,13 +76,11 @@ public class Graph extends jrds.Graph {
     static private final int[] LOSS = new int[] {0x26ff00, 0x00b8ff, 0x0059ff, 0x5e00ff, 0x7e00ff, 0xdd00ff, 0xff0000};
 
     private Color toGray(int index) {
-        Color c = new Color(GRAYS[index]);
-        return c;
+        return new Color(GRAYS[index]);
     }
 
     private Color toLoss(int index) {
-        Color c = new Color(LOSS[index]);
-        return c;
+        return new Color(LOSS[index]);
     }
 
     private void getStdDev(Probe<?,?> p, ExtractInfo ei) {
