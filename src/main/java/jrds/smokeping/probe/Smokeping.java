@@ -2,11 +2,11 @@ package jrds.smokeping.probe;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.slf4j.event.Level;
 
@@ -18,6 +18,8 @@ import lombok.Setter;
 
 @ProbeBean({"node"})
 public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
+
+    private static final Pattern colon = Pattern.compile(":");
 
     @Getter @Setter
     private String node = null;
@@ -37,48 +39,48 @@ public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
         }
     }
 
-    /* (non-Javadoc)
-     * @see jrds.probe.ExternalCmdProbe#getNewSampleValues()
-     */
     @Override
     public Map<String, Number> getNewSampleValues() {
         String smallping = launchCmd();
-        String[] valuesStr = smallping.split(":");
-        if(valuesStr.length != 21) {
+        double[] values = colon.splitAsStream(smallping)
+                               .filter(s -> ! "U".equals(s))
+                               .mapToDouble(this::convertString)
+                               .filter(d -> ! Double.isNaN(d))
+                               .toArray();
+        if (values.length > 20) {
             log(Level.ERROR, "smallping run failed: %s", smallping);
             return Collections.emptyMap();
         }
-        List<Double> values= new ArrayList<>(20);
-        int loss = 20;
-        for(int i=1; i <= 20; i++) {
-            String valparse = valuesStr[i];
-            Double parsed = jrds.Util.parseStringNumber(valparse, Double.NaN);
-            if(! parsed.isNaN()) {
-                values.add(parsed);
-                loss--;
-            }
+        Arrays.sort(values);
+        Map<String, Number> valuesMap = new HashMap<>(30);
+        for (int i = 1 ; i <= values.length; i++) {
+            valuesMap.put("ping" + i, values[i - 1]);
         }
-        values.sort(Double::compare);
-        Map<String, Number> valuesMap = new HashMap<>(values.size());
-        int start =  1 + (int) Math.floor( (float) loss / 2);
-        int end = 20 - (int) Math.ceil( (float) loss / 2);
-        for(int i = start ; i <= end; i++ ) {
-            valuesMap.put("ping" + i, values.get(i - start));
-        }
-        valuesMap.put("loss", loss);
+        valuesMap.put("loss", 20 - values.length);
         valuesMap.put("median", median(values));
+        valuesMap.put("max", values[values.length -1]);
         return valuesMap;
     }
 
-    // the list m must be already sorted
-    private Double median(List<Double> m) {
-        if(m.isEmpty())
+    private double convertString(String value) {
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException ex) {
             return Double.NaN;
-        int middle = m.size()/2;
-        if (m.size() % 2 == 1) {
-            return m.get(middle);
+        }
+    }
+
+    // the list must have been already sorted
+    private Double median(double[] values) {
+        if (values.length == 0) {
+            return Double.NaN;
         } else {
-            return (m.get(middle-1) + m.get(middle)) / 2.0;
+            int middle = values.length/2;
+            if (values.length % 2 == 1) {
+                return values[middle];
+            } else {
+                return (values[middle - 1] + values[middle + 1]) / 2.0;
+            }
         }
     }
 

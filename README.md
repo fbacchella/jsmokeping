@@ -9,7 +9,7 @@ build
 
 jsmokeping build a jsmokeping.jar, that needs to be found by jrds, as usual.
 
-But it also need a small setuid root binary. It's build with ant, but needs [Ant-Contrib](http://ant-contrib.sourceforge.net "Ant-Contrib") and
+But it also needs a small setuid root binary. It's build with ant, but needs [Ant-Contrib](http://ant-contrib.sourceforge.net "Ant-Contrib") and
  also the [cpp-tasks](http://mvnrepository.com/artifact/ant-contrib/cpptasks "cpp-tasks").
 The binary is build in build/smallping.
 

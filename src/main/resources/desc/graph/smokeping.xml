@@ -3,7 +3,7 @@
 <graphdesc>
     <name>Smokeping</name>
     <graphName>smokeping-${index}</graphName>
-    <graphClass>jrds.smokeping.Graph</graphClass>
+    <graphClass>jrds.smokeping.SmokeGraph</graphClass>
     <graphTitle>Smokeping for ${index}</graphTitle>
     <unit>
         <base>m</base>
@@ -74,6 +74,9 @@
     </add>
     <add>
         <name>median</name>
+    </add>
+    <add>
+        <name>max</name>
     </add>
     <add>
         <name>median</name>

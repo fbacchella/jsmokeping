@@ -94,6 +94,10 @@
         <dsName>median</dsName>
         <dsType>gauge</dsType>
     </ds>
+    <ds>
+        <dsName>max</dsName>
+        <dsType>gauge</dsType>
+    </ds>
     <graphs>
         <name>Smokeping</name>
     </graphs>
