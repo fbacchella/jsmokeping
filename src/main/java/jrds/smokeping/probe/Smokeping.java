@@ -47,7 +47,7 @@ public class Smokeping extends ExternalCmdProbe implements IndexedProbe {
                                .mapToDouble(this::convertString)
                                .filter(d -> ! Double.isNaN(d))
                                .toArray();
-        if (values.length > 20) {
+        if (values.length > 20 || values.length == 0) {
             log(Level.ERROR, "smallping run failed: %s", smallping);
             return Collections.emptyMap();
         }
