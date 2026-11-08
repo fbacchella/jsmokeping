@@ -30,6 +30,18 @@
 
 #define NUM_PING 20
 
+/* On Linux, unprivileged "ping" sockets (SOCK_DGRAM + IPPROTO_ICMP) never
+ * include the IP header in the data returned by recvfrom(): the kernel
+ * strips it before delivery. On macOS/BSD, the same socket type still
+ * hands back the IP header exactly like a SOCK_RAW socket would. This
+ * only matters when we actually end up using a SOCK_DGRAM socket (see
+ * main()); SOCK_RAW always includes the IP header on every platform. */
+#if defined(__linux__)
+#define DGRAM_HAS_IP_HEADER 0
+#else
+#define DGRAM_HAS_IP_HEADER 1
+#endif
+
 /* The BSD "struct icmp" (with its icmp_id/icmp_seq/icmp_data macros) is
  * provided by <netinet/ip_icmp.h> on macOS and other BSD derived systems,
  * but glibc on Linux only exposes "struct icmphdr" there, with a different
@@ -94,7 +106,7 @@ double tv_sub(const struct timeval *out, const struct timeval *in)
     return ((double) delta_sec) + ((double) delta_usec / 1000000L);
 }
 
-int received(int icmp_sock, int echo_id, double* delays, struct in_addr expected_addr) {
+int received(int icmp_sock, int echo_id, double* delays, struct in_addr expected_addr, int ip_header_size) {
     char pkt_buf[MAX_PACKET];
     struct icmp_echo * icmp_buf = (struct icmp_echo *) pkt_buf;
     double delay;
@@ -106,25 +118,28 @@ int received(int icmp_sock, int echo_id, double* delays, struct in_addr expected
     int nread = recvfrom(icmp_sock, pkt_buf, MAX_PACKET, 0, (struct sockaddr *) &from_addr, &from_len);
     if(nread == -1)
         return 0;
-    //Not even enough data to read the IP header length field: reject.
-    if(nread < 1)
-        return 0;
-    //The IP header length is only reliable for headers without options
-    //(IHL == 5, i.e. 20 bytes): a packet with IP options would shift the
-    //real start of the ICMP payload past our fixed IP_SIZE offset. Rather
-    //than risk misreading such a packet, reject it outright as an error,
-    //without any further processing.
-    if(((pkt_buf[0] & 0x0F) * 4) != IP_SIZE)
-        return 0;
-    //Discard truncated packets: not enough room for the IP header, our ICMP
-    //header and the embedded timeval we use to compute the delay.
-    if((size_t) nread < IP_SIZE + ICMP_SIZE + sizeof(struct timeval))
+    if(ip_header_size > 0) {
+        //Not even enough data to read the IP header length field: reject.
+        if(nread < 1)
+            return 0;
+        //The IP header length is only reliable for headers without options
+        //(IHL == 5, i.e. 20 bytes): a packet with IP options would shift the
+        //real start of the ICMP payload past our fixed ip_header_size offset.
+        //Rather than risk misreading such a packet, reject it outright as an
+        //error, without any further processing.
+        if(((pkt_buf[0] & 0x0F) * 4) != ip_header_size)
+            return 0;
+    }
+    //Discard truncated packets: not enough room for the (possibly absent) IP
+    //header, our ICMP header and the embedded timeval we use to compute the
+    //delay.
+    if((size_t) nread < (size_t) ip_header_size + ICMP_SIZE + sizeof(struct timeval))
         return 0;
     //Discard replies that didn't come from the host we pinged, so a third
     //party can't forge replies and pollute the measurements.
     if(from_addr.sin_addr.s_addr != expected_addr.s_addr)
         return 0;
-    icmp_buf = (struct icmp_echo *) (pkt_buf + IP_SIZE);
+    icmp_buf = (struct icmp_echo *) (pkt_buf + ip_header_size);
 
     //Check if it's one of our ping reply
     if(icmp_buf->icmp_type == ICMP_ECHOREPLY && icmp_buf->icmp_id == echo_id && icmp_buf->icmp_seq < NUM_PING) {
@@ -157,13 +172,39 @@ main(int argc, char *argv[])
     double delays[NUM_PING];
     
     int icmp_sock;
-    icmp_sock=socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+    int using_dgram = 0;
+    //Unprivileged "ping" sockets (SOCK_DGRAM+IPPROTO_ICMP) let a non-root
+    //user send/receive ICMP echo without setuid. There is no point trying
+    //this when we are already root (e.g. through the setuid bit on this
+    //binary): SOCK_RAW always works for root, and some systems (OpenBSD,
+    //or Linux without net.ipv4.ping_group_range configured) don't support
+    //SOCK_DGRAM ICMP sockets at all, so we fall back to SOCK_RAW whenever
+    //we didn't even try SOCK_DGRAM, or it failed.
+    if (getuid() != 0) {
+        icmp_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+        if (icmp_sock != -1) {
+            using_dgram = 1;
+        }
+    }
+    if (!using_dgram) {
+        icmp_sock=socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+    }
     if (icmp_sock == -1) {
         perror(NULL);
         exit(1);
     }
     
     fcntl(icmp_sock, F_SETFL, O_NONBLOCK);
+    
+    //See the DGRAM_HAS_IP_HEADER comment above: on Linux, SOCK_DGRAM ICMP
+    //sockets never hand back the IP header, so there is nothing to skip
+    //when parsing a reply.
+    int ip_header_size = IP_SIZE;
+#if !DGRAM_HAS_IP_HEADER
+    if (using_dgram) {
+        ip_header_size = 0;
+    }
+#endif
     
     struct sockaddr_in icmp_sock_info;
     int lsock = sizeof(icmp_sock_info);
@@ -186,6 +227,37 @@ main(int argc, char *argv[])
     gettimeofday(&seed_tv, NULL);
     srandom((unsigned int) (seed_tv.tv_sec ^ seed_tv.tv_usec ^ getpid()));
     uint16_t echo_id = random() & 0xFFFF;
+    
+#if !DGRAM_HAS_IP_HEADER
+    if (using_dgram) {
+        //On Linux, a "ping" socket's ICMP id is actually the socket's own
+        //local port: the kernel ignores whatever id we put in outgoing
+        //packets and rewrites it to this port, using it to route replies
+        //back to us. Bind explicitly to our chosen echo_id so it stays the
+        //id we expect in received(); if that port happens to be taken,
+        //let the kernel assign one instead and read back whichever id it
+        //picked.
+        struct sockaddr_in bind_addr;
+        bzero(&bind_addr, sizeof(bind_addr));
+        bind_addr.sin_family = AF_INET;
+        bind_addr.sin_port = htons(echo_id);
+        if (bind(icmp_sock, (struct sockaddr *) &bind_addr, sizeof(bind_addr)) == -1) {
+            //Our random id happened to collide with another socket's port:
+            //let the kernel pick one for us instead.
+            bind_addr.sin_port = 0;
+            bind(icmp_sock, (struct sockaddr *) &bind_addr, sizeof(bind_addr));
+        }
+        //The kernel copies this raw 16 bit port value verbatim into octets
+        //4-5 (the id field) of every outgoing/incoming ICMP packet on this
+        //socket, without ever applying ntohs/htons to it again. echo_id
+        //must therefore be compared against that same raw representation,
+        //not against the (unconverted) value we originally picked.
+        socklen_t bind_addr_len = sizeof(bind_addr);
+        if (getsockname(icmp_sock, (struct sockaddr *) &bind_addr, &bind_addr_len) == 0) {
+            echo_id = bind_addr.sin_port;
+        }
+    }
+#endif
     
     int ping_out = 0;
     
@@ -223,7 +295,7 @@ main(int argc, char *argv[])
         timeout.tv_usec = 10000;
         errno = 0;
         while((result = reset_select(icmp_sock, &timeout)) > 0) {
-            while(received(icmp_sock, echo_id, delays, addr) > 0) {
+            while(received(icmp_sock, echo_id, delays, addr, ip_header_size) > 0) {
                 ping_out--;
             }
         }
@@ -244,7 +316,7 @@ main(int argc, char *argv[])
         errno = 0;
         result = reset_select(icmp_sock, &timeout);
         if ( result > 0) {
-            while ( received(icmp_sock, echo_id, delays, addr) > 0) {
+            while (received(icmp_sock, echo_id, delays, addr, ip_header_size) > 0) {
                 ping_out--;
             }
         }
